@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Математический пазл — Дело о пропавшей пицце</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Rubik:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Палитра подобрана под картинку: рыжий котик, карамельная кухня, молочный свет */
+      --milk: #fff7e8;
+      --cream: #ffe6bd;
+      --cream-light: #fffaf0;
+      --honey: #f3b35f;
+      --caramel: #df8a36;
+      --pumpkin: #d96b1f;
+      --ginger: #b94a12;
+      --cocoa: #5b2a0c;
+      --coffee: #7a3c14;
+      --green: #6e9b43;
+      --green-dark: #3f6f2b;
+      --success: #65b955;
+      --error: #d8572a;
+      --shadow-soft: 0 20px 60px rgba(91, 42, 12, 0.28);
+      --font-main: "Rubik", "Roboto Condensed", system-ui, -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      font-family: var(--font-main);
+      color: var(--cocoa);
+      background: radial-gradient(circle at top, #ffe0ad 0%, #f6a24e 38%, #a74714 100%);
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    button, input, textarea, select { font: inherit; }
+
+    .app-root {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ---------- СТАРТОВЫЙ ЭКРАН ---------- */
+    .start-screen {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .start-screen::before {
+      content: "";
+      position: absolute;
+      inset: -24px;
+      background: url("images/puzzlepicture.png") center/cover no-repeat;
+      filter: blur(14px) saturate(1.05);
+      transform: scale(1.04);
+      z-index: 0;
+    }
+
+    .start-screen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, rgba(255, 247, 232, 0.35), rgba(122, 60, 20, 0.35)),
+        linear-gradient(135deg, rgba(255, 230, 189, 0.3), rgba(185, 74, 18, 0.38));
+      z-index: 0;
+    }
+
+    .start-overlay {
+      position: relative;
+      z-index: 1;
+      max-width: 560px;
+      width: 100%;
+      padding: 42px 34px 38px;
+      border-radius: 34px;
+      background: rgba(255, 247, 232, 0.9);
+      border: 4px solid rgba(255, 255, 255, 0.75);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+    }
+
+    .start-highlight {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 18px;
+      margin-bottom: 18px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--pumpkin), var(--caramel));
+      color: #fffaf0;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      box-shadow: 0 10px 22px rgba(217, 107, 31, 0.35);
+    }
+
+    .start-title {
+      font-size: clamp(34px, 5vw, 52px);
+      line-height: 1.04;
+      font-weight: 800;
+      color: var(--ginger);
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      text-shadow: 0 3px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    .start-subtitle {
+      font-size: clamp(20px, 2.5vw, 26px);
+      color: var(--coffee);
+      line-height: 1.35;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .start-button,
+    .zoom-button,
+    .overlay-button {
+      border: none;
+      cursor: pointer;
+      border-radius: 999px;
+      font-weight: 800;
+      text-transform: uppercase;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    .start-button {
+      width: 100%;
+      max-width: 310px;
+      padding: 17px 24px;
+      font-size: 24px;
+      color: #fffaf0;
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      box-shadow: 0 12px 28px rgba(63, 111, 43, 0.36);
+    }
+
+    .start-button:hover,
+    .zoom-button:hover,
+    .overlay-button:hover {
+      transform: translateY(-3px);
+      filter: brightness(1.04);
+    }
+
+    .start-button:active,
+    .zoom-button:active,
+    .overlay-button:active {
+      transform: translateY(1px);
+    }
+
+    /* ---------- ИГРОВОЙ ЭКРАН ---------- */
+    .game-screen {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      background:
+        radial-gradient(circle at top left, rgba(255, 236, 195, 0.9), transparent 38%),
+        linear-gradient(135deg, #f6a852 0%, #da7528 45%, #8b3a11 100%);
+    }
+
+    .game-wrapper {
+      position: relative;
+      width: min(96vw, 1500px);
+      height: min(94vh, 880px);
+      min-height: 620px;
+      border-radius: 30px;
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      background: rgba(255, 247, 232, 0.68);
+      border: 5px solid rgba(255, 250, 240, 0.85);
+    }
+
+    .top-bar {
+      position: relative;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px 22px 10px;
+    }
+
+    .progress {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 18px;
+      border-radius: 999px;
+      background: rgba(255, 250, 240, 0.93);
+      border: 3px solid rgba(255, 230, 189, 0.95);
+      box-shadow: 0 8px 20px rgba(91, 42, 12, 0.12);
+    }
+
+    .progress-check {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--green);
+      color: #fff;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .progress-text {
+      font-size: 23px;
+      font-weight: 800;
+      color: var(--coffee);
+    }
+
+    .sound-toggle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 230, 189, 0.95);
+      background: rgba(255, 250, 240, 0.93);
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(91, 42, 12, 0.12);
+    }
+
+    .sound-icon { font-size: 25px; }
+
+    .game-field {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 8px 22px 22px;
+      min-height: 0;
+    }
+
+    .image-area {
+      position: relative;
+      flex: 1;
+      border-radius: 24px;
+      overflow: hidden;
+      background: var(--cream);
+      box-shadow: inset 0 0 0 3px rgba(255, 250, 240, 0.68);
+    }
+
+    .puzzle-image-wrapper {
+      position: absolute;
+      inset: 0;
+      background: url("images/puzzlepicture.png") center/cover no-repeat;
+    }
+
+    .puzzle-image-wrapper::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 80px rgba(91, 42, 12, 0.18);
+    }
+
+    .tiles-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 0;
+      z-index: 2;
+    }
+
+    .puzzle-tile {
+      position: relative;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      cursor: pointer;
+      perspective: 1000px;
+      background: linear-gradient(135deg, rgba(255, 230, 189, 0.98), rgba(223, 138, 54, 0.96));
+      transition: transform 0.2s ease, opacity 0.28s ease, filter 0.2s ease;
+    }
+
+    .puzzle-tile:nth-child(2n) {
+      background: linear-gradient(135deg, rgba(246, 168, 82, 0.98), rgba(198, 83, 18, 0.96));
+    }
+
+    .puzzle-tile:nth-child(3n) {
+      background: linear-gradient(135deg, rgba(255, 247, 232, 0.98), rgba(240, 174, 91, 0.96));
+    }
+
+    .puzzle-tile-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 16px;
+      text-align: center;
+      color: var(--cocoa);
+      background: inherit;
+      box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.32), 0 8px 18px rgba(91, 42, 12, 0.13);
+      border: 2px solid rgba(255, 247, 232, 0.18);
+      overflow: visible;
+    }
+
+    .tile-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(255, 250, 240, 0.88);
+      color: var(--ginger);
+      font-size: 28px;
+      font-weight: 800;
+      box-shadow: 0 8px 16px rgba(91, 42, 12, 0.13);
+    }
+
+    .tile-label {
+      font-size: clamp(22px, 2.2vw, 34px);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--cocoa);
+      text-shadow: 0 2px 0 rgba(255, 250, 240, 0.7);
+    }
+
+    .puzzle-tile[data-index="0"] .puzzle-tile-inner { border-radius: 24px 0 0 0; }
+    .puzzle-tile[data-index="2"] .puzzle-tile-inner { border-radius: 0 24px 0 0; }
+    .puzzle-tile[data-index="3"] .puzzle-tile-inner { border-radius: 0 0 0 24px; }
+    .puzzle-tile[data-index="5"] .puzzle-tile-inner { border-radius: 0 0 24px 0; }
+
+    /* декоративные выступы пазла */
+    .puzzle-tile-inner::before,
+    .puzzle-tile-inner::after,
+    .puzzle-tile::before,
+    .puzzle-tile::after {
+      content: "";
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: inherit;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .puzzle-tile[data-right="tab"]::after { right: -22px; top: 50%; transform: translateY(-50%); box-shadow: 5px 0 8px rgba(91,42,12,0.12); }
+    .puzzle-tile[data-left="tab"]::before { left: -22px; top: 50%; transform: translateY(-50%); box-shadow: -5px 0 8px rgba(91,42,12,0.12); }
+    .puzzle-tile[data-bottom="tab"] .puzzle-tile-inner::after { bottom: -22px; left: 50%; transform: translateX(-50%); box-shadow: 0 5px 8px rgba(91,42,12,0.12); }
+    .puzzle-tile[data-top="tab"] .puzzle-tile-inner::before { top: -22px; left: 50%; transform: translateX(-50%); box-shadow: 0 -5px 8px rgba(91,42,12,0.12); }
+
+    .puzzle-tile[data-right="none"]::after,
+    .puzzle-tile[data-left="none"]::before,
+    .puzzle-tile[data-bottom="none"] .puzzle-tile-inner::after,
+    .puzzle-tile[data-top="none"] .puzzle-tile-inner::before { display: none; }
+
+    .puzzle-tile:hover {
+      transform: translateY(-4px) scale(1.01);
+      z-index: 10;
+      filter: brightness(1.05);
+    }
+
+    .puzzle-tile.disabled {
+      pointer-events: none;
+      cursor: default;
+      opacity: 0;
+      transform: scale(0.92);
+    }
+
+    .puzzle-tile.flipping { animation: tileFlip 0.45s ease forwards; }
+
+    @keyframes tileFlip {
+      0%   { transform: rotateY(0deg) scale(1); opacity: 1; }
+      45%  { transform: rotateY(88deg) scale(1.08); opacity: 0.75; }
+      100% { transform: rotateY(88deg) scale(0.92); opacity: 0; }
+    }
+
+    /* ---------- ОКНА ---------- */
+    .overlay,
+    .zoom-overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .overlay.visible,
+    .zoom-overlay.visible { display: flex; }
+
+    .overlay {
+      background: rgba(91, 42, 12, 0.46);
+      backdrop-filter: blur(8px);
+      z-index: 160;
+    }
+
+    .zoom-overlay {
+      background: rgba(91, 42, 12, 0.62);
+      backdrop-filter: blur(9px);
+      z-index: 120;
+    }
+
+    .zoom-card {
+      width: min(96vw, 980px);
+      max-height: 92vh;
+      overflow-y: auto;
+      padding: clamp(22px, 4vw, 42px);
+      border-radius: 34px;
+      background:
+        linear-gradient(180deg, rgba(255,250,240,0.98), rgba(255,230,189,0.98));
+      border: 5px solid rgba(255, 250, 240, 0.92);
+      box-shadow: 0 24px 70px rgba(61, 31, 9, 0.42);
+    }
+
+    .zoom-question {
+      margin-bottom: 24px;
+      color: var(--cocoa);
+      font-size: clamp(24px, 3.4vw, 36px);
+      line-height: 1.22;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .task-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      padding: 7px 16px;
+      border-radius: 999px;
+      background: var(--pumpkin);
+      color: #fffaf0;
+      font-size: 18px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .problem-layout {
+      display: grid;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .hint-box {
+      padding: 13px 16px;
+      border-radius: 18px;
+      background: rgba(110, 155, 67, 0.13);
+      border: 2px dashed rgba(63, 111, 43, 0.45);
+      color: var(--green-dark);
+      font-size: 22px;
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .zoom-textarea {
+      width: 100%;
+      min-height: 135px;
+      resize: vertical;
+      padding: 18px 20px;
+      border-radius: 22px;
+      border: 3px solid rgba(223, 138, 54, 0.35);
+      outline: none;
+      background: rgba(255, 250, 240, 0.9);
+      color: var(--cocoa);
+      font-size: 24px;
+      line-height: 1.35;
+      box-shadow: inset 0 4px 12px rgba(91, 42, 12, 0.06);
+    }
+
+    .answer-row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 14px;
+      flex-wrap: wrap;
+      color: var(--cocoa);
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 800;
+    }
+
+    .answer-input,
+    .order-input {
+      width: min(100%, 260px);
+      min-height: 66px;
+      padding: 12px 16px;
+      border-radius: 18px;
+      border: 3px solid rgba(223, 138, 54, 0.55);
+      outline: none;
+      background: rgba(255, 250, 240, 0.96);
+      color: var(--cocoa);
+      font-size: 30px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: inset 0 4px 12px rgba(91, 42, 12, 0.06);
+      transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+    }
+
+    .answer-input:focus,
+    .order-input:focus,
+    .zoom-textarea:focus {
+      border-color: var(--green);
+      background: #fffdf7;
+    }
+
+    .answer-input.correct,
+    .order-input.correct { border-color: var(--success); background: #ecfae8; }
+
+    .answer-input.error,
+    .order-input.error { border-color: var(--error); background: #ffe9df; }
+
+    .order-list {
+      display: grid;
+      gap: 14px;
+      margin: 20px 0 26px;
+    }
+
+    .order-row {
+      display: grid;
+      grid-template-columns: 1fr 92px;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      border-radius: 22px;
+      background: rgba(255, 250, 240, 0.78);
+      border: 3px solid rgba(223, 138, 54, 0.22);
+      box-shadow: 0 8px 16px rgba(91, 42, 12, 0.08);
+    }
+
+    .order-name {
+      font-size: clamp(23px, 2.8vw, 31px);
+      font-weight: 800;
+      color: var(--coffee);
+    }
+
+    .order-input {
+      width: 82px;
+      min-height: 62px;
+      font-size: 30px;
+      padding: 8px;
+    }
+
+    .choice-list {
+      display: grid;
+      gap: 14px;
+      margin: 20px 0 26px;
+    }
+
+    .choice-option {
+      position: relative;
+      display: grid;
+      grid-template-columns: 38px 1fr;
+      align-items: center;
+      gap: 13px;
+      padding: 16px 18px;
+      border-radius: 22px;
+      background: rgba(255, 250, 240, 0.82);
+      border: 3px solid rgba(223, 138, 54, 0.28);
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(91, 42, 12, 0.08);
+      transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .choice-option:hover {
+      transform: translateY(-2px);
+      border-color: rgba(217, 107, 31, 0.7);
+      background: #fffaf0;
+    }
+
+    .choice-option input {
+      width: 28px;
+      height: 28px;
+      accent-color: var(--pumpkin);
+      cursor: pointer;
+    }
+
+    .choice-text {
+      font-size: clamp(22px, 2.7vw, 31px);
+      line-height: 1.24;
+      font-weight: 800;
+      color: var(--coffee);
+    }
+
+    .choice-option.correct-choice { border-color: var(--success); background: #ecfae8; }
+    .choice-option.error-choice { border-color: var(--error); background: #ffe9df; }
+
+    .zoom-button {
+      display: block;
+      width: 100%;
+      padding: 17px 22px;
+      color: #fffaf0;
+      background: linear-gradient(135deg, var(--green), var(--green-dark));
+      box-shadow: 0 12px 28px rgba(63, 111, 43, 0.32);
+      font-size: clamp(22px, 2.8vw, 28px);
+    }
+
+    .overlay-card,
+    .final-content {
+      width: min(94vw, 520px);
+      padding: 34px 28px;
+      border-radius: 32px;
+      text-align: center;
+      background: rgba(255, 247, 232, 0.96);
+      border: 5px solid rgba(255, 250, 240, 0.9);
+      box-shadow: 0 24px 70px rgba(61, 31, 9, 0.42);
+    }
+
+    .overlay-title,
+    .final-title {
+      margin-bottom: 12px;
+      color: var(--ginger);
+      font-size: clamp(32px, 5vw, 46px);
+      line-height: 1.04;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .overlay-text,
+    .final-subtitle {
+      margin-bottom: 26px;
+      color: var(--coffee);
+      font-size: clamp(22px, 3vw, 28px);
+      line-height: 1.28;
+      font-weight: 700;
+    }
+
+    .overlay-button {
+      width: 100%;
+      padding: 15px 22px;
+      color: #fffaf0;
+      background: linear-gradient(135deg, var(--pumpkin), var(--ginger));
+      box-shadow: 0 12px 28px rgba(185, 74, 18, 0.32);
+      font-size: 22px;
+    }
+
+    .final-overlay { overflow: hidden; }
+
+    .final-content {
+      position: relative;
+      z-index: 2;
+      border-color: rgba(243, 179, 95, 0.95);
+    }
+
+    .secondary-button {
+      margin-top: 12px;
+      color: var(--cocoa);
+      background: rgba(255, 230, 189, 0.95);
+      box-shadow: none;
+    }
+
+    .firework {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    @keyframes explode {
+      0% { transform: scale(0.1); opacity: 1; }
+      70% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.2); opacity: 0; }
+    }
+
+    @media (max-width: 780px) {
+      .game-wrapper { min-height: 560px; height: 92vh; }
+      .tiles-grid { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(3, 1fr); }
+      .order-row { grid-template-columns: 1fr 78px; }
+      .order-input { width: 72px; }
+      .top-bar { padding-inline: 14px; }
+      .game-field { padding-inline: 14px; }
+    }
+
+    @media (max-width: 520px) {
+      .answer-row { justify-content: stretch; }
+      .answer-input { width: 100%; }
+      .choice-option { grid-template-columns: 32px 1fr; padding: 14px; }
+      .choice-text { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-root">
+    <section class="start-screen" id="startScreen">
+      <div class="start-overlay">
+        <div class="start-highlight">🍕 Математический детектив</div>
+        <h1 class="start-title">Дело о пропавшей пицце</h1>
+        <p class="start-subtitle">Реши 6 заданий и открой всю картинку котика.</p>
+        <button class="start-button" id="startButton">Начать</button>
+      </div>
+    </section>
+
+    <section class="game-screen" id="gameScreen">
+      <div class="game-wrapper">
+        <div class="top-bar">
+          <div class="progress" aria-live="polite">
+            <div class="progress-check">✓</div>
+            <div class="progress-text" id="progressText">0 / 6</div>
+          </div>
+          <button class="sound-toggle" id="soundToggle" aria-label="Звук">
+            <span class="sound-icon" id="soundIcon">🔊</span>
+          </button>
+        </div>
+
+        <div class="game-field">
+          <div class="image-area">
+            <div class="puzzle-image-wrapper">
+              <div class="tiles-grid" id="tilesGrid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="zoom-overlay" id="zoomOverlay">
+      <div class="zoom-card" role="dialog" aria-modal="true" aria-label="Задание">
+        <div id="zoomContent"></div>
+        <button class="zoom-button" id="zoomSubmit">Готово</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="errorOverlay">
+      <div class="overlay-card">
+        <div class="overlay-title" style="color: var(--error);">Неверно!</div>
+        <div class="overlay-text">Проверь вычисления и попробуй ещё раз.</div>
+        <button class="overlay-button" id="errorCloseBtn">Вернуться</button>
+      </div>
+    </div>
+
+    <div class="overlay" id="breakOverlay">
+      <div class="overlay-card">
+        <div class="overlay-title">Пауза!</div>
+        <div class="overlay-text">Сделай короткую разминку 🤸‍♀️</div>
+        <button class="overlay-button" id="breakContinueButton">Продолжить</button>
+      </div>
+    </div>
+
+    <div class="overlay final-overlay" id="finalOverlay">
+      <div class="final-content">
+        <div class="final-title">Отлично!</div>
+        <div class="final-subtitle">Ты открыл всю картинку!</div>
+        <button class="overlay-button" id="playAgainButton">Играть ещё раз</button>
+        <button class="overlay-button secondary-button" id="freeModeButton">Посмотреть картинку</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const originalPuzzles = [
+      {
+        type: "free",
+        title: "Задание 1",
+        text: "Из двух городов, расстояние между которыми 828 км, вышли одновременно навстречу друг другу скорый и товарный поезда. Скорость скорого поезда 75 км/ч. Какова скорость товарного поезда, если поезда встретились через 6 часов?",
+        hint: "Ответ дай в тоннах. Например, 23 т",
+        placeholder: "Введи число",
+        checks: ['6cu766', '12vwaum', '12vwaum', '1okdq01', '1okdq01']
+      },
+      {
+        type: "free",
+        title: "Задание 2",
+        text: "Решите задачу: В зернохранилище 700 т пшеницы. На зиму с базы отправили 124 т зерна, а во второй раз — на 203 т больше. Сколько тонн зерна осталось на базе?",
+        hint: "В ответ введи только число.",
+        placeholder: "Введи число",
+        checks: ['e42shq', '42jkj8', '42jkj8', 's32hn0', 'nc9m7o']
+      },
+      {
+        type: "order",
+        title: "Задание 3",
+        text: "Укажи верный порядок действий в данном выражении:",
+        expression: "🍕 − 🕵️ : 🐾 + 😼 · 🔎",
+        hint: "Рядом с названием действия укажи, каким по счёту оно будет выполнено.",
+        items: [
+          { label: "Вычитание", answer: "3" },
+          { label: "Деление", answer: "1" },
+          { label: "Сложение", answer: "4" },
+          { label: "Умножение", answer: "2" }
+        ]
+      },
+      {
+        type: "choice",
+        title: "Задание 4",
+        text: "Укажи, где ответ найден верно.",
+        multiple: true,
+        options: [
+          { text: "9 т 9 кг − 99 кг = 8 т 910 кг", correct: true },
+          { text: "4 м 4 см − 44 см = 0 см", correct: false },
+          { text: "6 ч 43 мин · 8 = 5144 мин", correct: false }
+        ]
+      },
+      {
+        type: "free",
+        title: "Задание 5",
+        text: "Найди корень уравнения: х : 127 = 1960 : 56",
+        hint: "В ответ введи только число.",
+        placeholder: "Введи число",
+        checks: ['y3clxu', '1y51hlt', 'iwywz8', 'iwywz8', '1y51hlt']
+      },
+      {
+        type: "free",
+        title: "Задание 6",
+        text: "Решите задачу: Площадь детского лагеря 20864 кв. м. Ширина лагеря 128 м. Найдите периметр детского лагеря.",
+        hint: "Ответ дай в метрах. Например, 44 м.",
+        placeholder: "Введи ответ",
+        checks: ['h417zy', '16812g6', '16812g6', 'jl7r1l', 'fcrqvj']
+      }
+    ];
+
+    const TOTAL_TILES = originalPuzzles.length;
+    const puzzleEdges = [
+      { top: "none", bottom: "tab",  left: "none", right: "tab"  },
+      { top: "none", bottom: "tab",  left: "tab",  right: "tab"  },
+      { top: "none", bottom: "tab",  left: "tab",  right: "none" },
+      { top: "tab",  bottom: "none", left: "none", right: "tab"  },
+      { top: "tab",  bottom: "none", left: "tab",  right: "tab"  },
+      { top: "tab",  bottom: "none", left: "tab",  right: "none" }
+    ];
+
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const startButton = document.getElementById("startButton");
+    const tilesGrid = document.getElementById("tilesGrid");
+    const progressTextEl = document.getElementById("progressText");
+
+    const zoomOverlay = document.getElementById("zoomOverlay");
+    const zoomContentEl = document.getElementById("zoomContent");
+    const zoomSubmitBtn = document.getElementById("zoomSubmit");
+
+    const errorOverlay = document.getElementById("errorOverlay");
+    const errorCloseBtn = document.getElementById("errorCloseBtn");
+
+    const breakOverlay = document.getElementById("breakOverlay");
+    const breakContinueButton = document.getElementById("breakContinueButton");
+
+    const finalOverlay = document.getElementById("finalOverlay");
+    const playAgainButton = document.getElementById("playAgainButton");
+    const freeModeButton = document.getElementById("freeModeButton");
+
+    const soundToggleBtn = document.getElementById("soundToggle");
+    const soundIconEl = document.getElementById("soundIcon");
+
+    let puzzles = [...originalPuzzles];
+    let openedTiles = 0;
+    let zoomTileIndex = null;
+    let breakShown = false;
+    let soundEnabled = true;
+
+    const flipSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+    const winSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+    const errorSound = new Audio("https://actions.google.com/sounds/v1/cartoon/goofy_spring_bounces.ogg");
+    flipSound.volume = 0.28;
+    winSound.volume = 0.32;
+    errorSound.volume = 0.36;
+
+    function playSound(audio) {
+      if (!soundEnabled || !audio) return;
+      try {
+        audio.currentTime = 0;
+        audio.play();
+      } catch (e) {}
+    }
+
+    function playErrorSoundLimited() {
+      if (!soundEnabled) return;
+      try {
+        errorSound.currentTime = 0;
+        errorSound.play();
+        setTimeout(() => {
+          try { errorSound.pause(); } catch (e) {}
+        }, 1400);
+      } catch (e) {}
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function normalizeAnswer(value) {
+      return String(value)
+        .toLowerCase()
+        .replace(/[ё]/g, "е")
+        .replace(/[×]/g, "·")
+        .replace(/\s+/g, "")
+        .replace(/[.,;:!]/g, "")
+        .trim();
+    }
+
+    function answerHash(value) {
+      const normalized = normalizeAnswer(value);
+      let hash = 2166136261;
+      for (let i = 0; i < normalized.length; i++) {
+        hash ^= normalized.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return (hash >>> 0).toString(36);
+    }
+
+    function isFreeAnswerCorrect(userValue, checks) {
+      return checks.includes(answerHash(userValue));
+    }
+
+    function updateProgress() {
+      progressTextEl.textContent = `${openedTiles} / ${TOTAL_TILES}`;
+    }
+
+    function createTiles() {
+      tilesGrid.innerHTML = "";
+
+      puzzles.forEach((puzzle, index) => {
+        const edges = puzzleEdges[index];
+        const tile = document.createElement("div");
+        tile.className = "puzzle-tile";
+        tile.dataset.index = index;
+        tile.dataset.top = edges.top;
+        tile.dataset.bottom = edges.bottom;
+        tile.dataset.left = edges.left;
+        tile.dataset.right = edges.right;
+
+        const inner = document.createElement("div");
+        inner.className = "puzzle-tile-inner";
+        inner.innerHTML = `
+          <span class="tile-number">${index + 1}</span>
+          <span class="tile-label">Открыть<br>задание</span>
+        `;
+
+        tile.appendChild(inner);
+        tilesGrid.appendChild(tile);
+
+        tile.addEventListener("click", () => {
+          if (!tile.classList.contains("disabled")) openZoom(index);
+        });
+      });
+    }
+
+    function renderFreeTask(puzzle) {
+      return `
+        <div class="task-badge">${escapeHtml(puzzle.title)}</div>
+        <div class="zoom-question">${escapeHtml(puzzle.text)}</div>
+        ${puzzle.hint ? `<div class="hint-box">💡 ${escapeHtml(puzzle.hint)}</div>` : ""}
+        <div class="problem-layout">
+          <textarea class="zoom-textarea" placeholder="Место для решения..."></textarea>
+          <div class="answer-row">
+            <span>Ответ:</span>
+            <input type="text" class="answer-input" id="freeAnswer" autocomplete="off" placeholder="${escapeHtml(puzzle.placeholder || "")}" />
+          </div>
+        </div>
+      `;
+    }
+
+    function renderOrderTask(puzzle) {
+      const rows = puzzle.items.map((item, index) => `
+        <label class="order-row">
+          <span class="order-name">${escapeHtml(item.label)}</span>
+          <input type="text" inputmode="numeric" maxlength="1" class="order-input" data-answer="${escapeHtml(item.answer)}" aria-label="Порядок: ${escapeHtml(item.label)}" />
+        </label>
+      `).join("");
+
+      return `
+        <div class="task-badge">${escapeHtml(puzzle.title)}</div>
+        <div class="zoom-question">
+          ${escapeHtml(puzzle.text)}<br>
+          <span style="display:block; margin-top:14px; font-size:1.25em; text-align:center; color:var(--ginger);">${puzzle.expression}</span>
+        </div>
+        <div class="hint-box">💡 ${escapeHtml(puzzle.hint)}</div>
+        <div class="order-list">${rows}</div>
+      `;
+    }
+
+    function renderChoiceTask(puzzle) {
+      const type = puzzle.multiple ? "checkbox" : "radio";
+      const options = puzzle.options.map((option, index) => `
+        <label class="choice-option" data-correct="${option.correct ? "true" : "false"}">
+          <input type="${type}" name="choiceAnswer" value="${index}" />
+          <span class="choice-text">${escapeHtml(option.text)}</span>
+        </label>
+      `).join("");
+
+      return `
+        <div class="task-badge">${escapeHtml(puzzle.title)}</div>
+        <div class="zoom-question">${escapeHtml(puzzle.text)}</div>
+        <div class="choice-list">${options}</div>
+      `;
+    }
+
+    function openZoom(index) {
+      zoomTileIndex = index;
+      const puzzle = puzzles[index];
+      zoomContentEl.innerHTML = "";
+
+      if (puzzle.type === "free") zoomContentEl.innerHTML = renderFreeTask(puzzle);
+      if (puzzle.type === "order") zoomContentEl.innerHTML = renderOrderTask(puzzle);
+      if (puzzle.type === "choice") zoomContentEl.innerHTML = renderChoiceTask(puzzle);
+
+      zoomOverlay.classList.add("visible");
+
+      setTimeout(() => {
+        const textarea = zoomContentEl.querySelector(".zoom-textarea");
+        const firstInput = zoomContentEl.querySelector("input");
+        if (textarea) textarea.focus();
+        else if (firstInput) firstInput.focus();
+      }, 60);
+    }
+
+    function closeZoom() {
+      zoomOverlay.classList.remove("visible");
+      zoomTileIndex = null;
+    }
+
+    function checkFreeTask(puzzle) {
+      const input = document.getElementById("freeAnswer");
+      const correct = input && isFreeAnswerCorrect(input.value, puzzle.checks);
+      input.classList.toggle("correct", Boolean(correct));
+      input.classList.toggle("error", !correct);
+      return Boolean(correct);
+    }
+
+    function checkOrderTask() {
+      let allCorrect = true;
+      const inputs = zoomContentEl.querySelectorAll(".order-input");
+
+      inputs.forEach(input => {
+        const correct = normalizeAnswer(input.value) === normalizeAnswer(input.dataset.answer);
+        input.classList.toggle("correct", correct);
+        input.classList.toggle("error", !correct);
+        if (!correct) allCorrect = false;
+      });
+
+      return allCorrect;
+    }
+
+    function checkChoiceTask() {
+      let allCorrect = true;
+      const options = zoomContentEl.querySelectorAll(".choice-option");
+      let hasSelected = false;
+
+      options.forEach(option => {
+        const input = option.querySelector("input");
+        const shouldBeChecked = option.dataset.correct === "true";
+        const isChecked = input.checked;
+        if (isChecked) hasSelected = true;
+
+        const optionCorrect = isChecked === shouldBeChecked;
+        option.classList.toggle("correct-choice", optionCorrect && isChecked);
+        option.classList.toggle("error-choice", !optionCorrect);
+
+        if (!optionCorrect) allCorrect = false;
+      });
+
+      return allCorrect && hasSelected;
+    }
+
+    function checkCurrentTask() {
+      if (zoomTileIndex === null) return false;
+      const puzzle = puzzles[zoomTileIndex];
+      if (puzzle.type === "free") return checkFreeTask(puzzle);
+      if (puzzle.type === "order") return checkOrderTask(puzzle);
+      if (puzzle.type === "choice") return checkChoiceTask(puzzle);
+      return false;
+    }
+
+    function openTileAfterCorrectAnswer() {
+      const tile = tilesGrid.querySelector(`.puzzle-tile[data-index="${zoomTileIndex}"]`);
+      if (!tile) return;
+
+      playSound(flipSound);
+
+      setTimeout(() => {
+        closeZoom();
+        tile.classList.add("flipping");
+
+        setTimeout(() => {
+          tile.classList.add("disabled");
+          openedTiles += 1;
+          updateProgress();
+
+          if (openedTiles === 3 && !breakShown) {
+            breakShown = true;
+            setTimeout(() => breakOverlay.classList.add("visible"), 250);
+          }
+
+          if (openedTiles >= TOTAL_TILES) {
+            setTimeout(showFinalScreen, 550);
+          }
+        }, 430);
+      }, 350);
+    }
+
+    function showFinalScreen() {
+      finalOverlay.classList.add("visible");
+      spawnFireworks();
+      playSound(winSound);
+    }
+
+    function spawnFireworks() {
+      const colors = ["#fff7e8", "#ffe6bd", "#f3b35f", "#d96b1f", "#65b955"];
+      for (let i = 0; i < 24; i++) {
+        const firework = document.createElement("div");
+        firework.className = "firework";
+        const size = 46 + Math.random() * 96;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const duration = 800 + Math.random() * 900;
+
+        firework.style.width = `${size}px`;
+        firework.style.height = `${size}px`;
+        firework.style.left = `${Math.random() * 92}%`;
+        firework.style.top = `${Math.random() * 82}%`;
+        firework.style.background = `radial-gradient(circle, ${color} 0%, rgba(255,255,255,0) 65%)`;
+        firework.style.animation = `explode ${duration}ms ease-out forwards`;
+
+        finalOverlay.appendChild(firework);
+        setTimeout(() => firework.remove(), duration + 50);
+      }
+    }
+
+    function startGame() {
+      startScreen.style.display = "none";
+      gameScreen.style.display = "flex";
+      finalOverlay.classList.remove("visible");
+      breakOverlay.classList.remove("visible");
+      errorOverlay.classList.remove("visible");
+      zoomOverlay.classList.remove("visible");
+
+      puzzles = [...originalPuzzles];
+      openedTiles = 0;
+      zoomTileIndex = null;
+      breakShown = false;
+      updateProgress();
+      createTiles();
+    }
+
+    startButton.addEventListener("click", startGame);
+    playAgainButton.addEventListener("click", startGame);
+
+    zoomSubmitBtn.addEventListener("click", () => {
+      const correct = checkCurrentTask();
+      if (correct) {
+        openTileAfterCorrectAnswer();
+      } else {
+        playErrorSoundLimited();
+        errorOverlay.classList.add("visible");
+      }
+    });
+
+    zoomOverlay.addEventListener("keydown", event => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        const tagName = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+        if (tagName !== "textarea") {
+          event.preventDefault();
+          zoomSubmitBtn.click();
+        }
+      }
+    });
+
+    errorCloseBtn.addEventListener("click", () => {
+      errorOverlay.classList.remove("visible");
+    });
+
+    breakContinueButton.addEventListener("click", () => {
+      breakOverlay.classList.remove("visible");
+    });
+
+    freeModeButton.addEventListener("click", () => {
+      finalOverlay.classList.remove("visible");
+    });
+
+    soundToggleBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundIconEl.textContent = soundEnabled ? "🔊" : "🔈";
+    });
+  </script>
+</body>
+</html>
